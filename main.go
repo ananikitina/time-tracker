@@ -42,11 +42,13 @@ func main() {
 	r := gin.Default()
 
 	// Регистрация маршрутов
-	routes.SetupRouter()
+	routes.SetupRouter(r)
 
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Запуск сервера
-	r.Run()
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Failed to run server: %v", err)
+	}
 }

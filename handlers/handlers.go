@@ -3,48 +3,13 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"time-tracker/client"
 	"time-tracker/database"
 	"time-tracker/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary Add a new user
-// @Description Add a new user with the given passport number
-// @Tags users
-// @Accept  json
-// @Produce  json
-// @Param   user     body    models.User     true  "User"
-// @Success 200 {object} models.User
-// @Failure 400 {object} gin.H
-// @Router /user [post]
-
-// AddUser добавляет нового пользователя
-func AddUser(c *gin.Context) {
-	var user models.User
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Вызов внешнего API для заполнения данных пользователя
-	if err := client.FetchUserData(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user data from external API"})
-		return
-	}
-
-	// Сохранение в базу данных
-	if err := database.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user to database"})
-		return
-	}
-
-	// Сохранение в базу данных
-	database.DB.Create(&user)
-	c.JSON(http.StatusOK, user)
-}
-
+// GetUsers godoc
 // @Summary Get users
 // @Description Get users with filtering and pagination
 // @Tags users
@@ -58,7 +23,7 @@ func AddUser(c *gin.Context) {
 // @Param page query int false "Page number" default(1)
 // @Param pageSize query int false "Page size" default(10)
 // @Success 200 {array} models.User
-// @Failure 400 {object} gin.H
+// @Failure 400 {object} map[string]interface{}
 // @Router /users [get]
 
 // GetUsers получает данные пользователя
@@ -90,4 +55,102 @@ func GetUsers(c *gin.Context) {
 
 	query.Offset(offset).Limit(pageSize).Find(&users)
 	c.JSON(http.StatusOK, users)
+}
+
+// AddUser godoc
+// @Summary Add a new user
+// @Description Add a new user with the given passport number
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param   user     body    models.User     true  "User"
+// @Success 200 {object} models.User
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /user [post]
+func AddUser(c *gin.Context) {
+	var newUser models.User
+
+	// Parse JSON request body
+	if err := c.ShouldBindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Save to database
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user to database"})
+		return
+	}
+
+	// Return the created user as JSON response
+	c.JSON(http.StatusOK, newUser)
+}
+
+func GetTaskEffort(c *gin.Context) {
+	return
+}
+
+func StartTask(c *gin.Context) {
+	return
+}
+
+func StopTask(c *gin.Context) {
+	return
+}
+
+func DeleteUser(c *gin.Context) {
+	// Extract user ID from URL parameter
+	userID := c.Param("id")
+
+	// Check if user exists
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Delete the user
+	if err := database.DB.Delete(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	// Respond with success message
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func UpdateUser(c *gin.Context) {
+	var user models.User
+
+	// Принять данные JSON из запроса и привязать их к структуре User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Получить ID пользователя из параметров URL
+	userID := c.Param("id")
+
+	// Проверить существование пользователя в базе данных
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Обновить данные пользователя
+	database.DB.Model(&user).Updates(models.User{
+		PassportNumber: user.PassportNumber,
+		Surname:        user.Surname,
+		Name:           user.Name,
+		Patronymic:     user.Patronymic,
+		Address:        user.Address,
+	})
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }

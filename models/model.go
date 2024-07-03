@@ -3,23 +3,18 @@ package models
 import "time"
 
 type User struct {
-    ID             uint      `gorm:"primaryKey"`
-    PassportNumber string    `gorm:"unique;not null"`
-    Surname        string
-    Name           string
-    Patronymic     string
-    Address        string
-    CreatedAt      time.Time
-    UpdatedAt      time.Time
+	ID             uint   `gorm:"primaryKey"`
+	PassportNumber string `json:"passportNumber" gorm:"unique;not null"`
+	Surname        string `json:"surname"`
+	Name           string `json:"name"`
+	Patronymic     string `json:"patronymic"`
+	Address        string `json:"address"`
 }
 
 type Task struct {
-    ID        uint      `gorm:"primaryKey"`
-    UserID    uint      `gorm:"not null"`
-    TaskName  string    `gorm:"not null"`
-    StartTime time.Time
-    EndTime   time.Time
-    CreatedAt time.Time
-    UpdatedAt time.Time
+	ID        uint   `gorm:"primaryKey"`
+	UserID    uint   `gorm:"not null"`
+	TaskName  string `gorm:"not null"`
+	StartTime time.Time
+	EndTime   time.Time
 }
-

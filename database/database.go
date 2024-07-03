@@ -12,31 +12,34 @@ import (
 	"gorm.io/gorm"
 )
 
-// Объявляем глобальную переменную DB типа *gorm.DB для использования в других частях программы.
 var DB *gorm.DB
 
-// Функция Connect выполняет подключение к базе данных и миграцию схемы.
 func Connect() {
-	// Загружаем переменные окружения из файла .env
+	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Формируем строку подключения к базе данных, используя переменные окружения.
+	// Construct the PostgreSQL DSN
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow",
 		os.Getenv("DB_HOST"), os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
 
-	// Открываем соединение с базой данных PostgreSQL с использованием GORM.
+	// Open a connection to the PostgreSQL database using GORM
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database!")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Присваиваем открытую базу данных глобальной переменной DB.
+	// Assign the opened database to the global variable DB
 	DB = db
 
-	// Выполняем автоматическую миграцию схемы базы данных для моделей User и Task.
-	db.AutoMigrate(&models.User{}, &models.Task{})
+	// Automatically migrate the database schema for User and Task models
+	err = db.AutoMigrate(&models.User{}, &models.Task{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database schema: %v", err)
+	}
+
+	log.Println("Connected to PostgreSQL database successfully")
 }
