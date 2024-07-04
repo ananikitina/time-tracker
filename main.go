@@ -37,6 +37,7 @@ func main() {
 
 	// Подключение к базе данных
 	database.Connect()
+	database.Migrate()
 
 	// Инициализация Gin
 	r := gin.Default()

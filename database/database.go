@@ -22,9 +22,9 @@ func Connect() {
 	}
 
 	// Construct the PostgreSQL DSN
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
 		os.Getenv("DB_HOST"), os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), os.Getenv("DB_TIMEZONE"))
 
 	// Open a connection to the PostgreSQL database using GORM
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -42,4 +42,11 @@ func Connect() {
 	}
 
 	log.Println("Connected to PostgreSQL database successfully")
+}
+
+func Migrate() {
+	err := DB.AutoMigrate(&models.User{}, &models.Task{})
+	if err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
 }

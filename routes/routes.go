@@ -7,13 +7,19 @@ import (
 )
 
 func SetupRouter(r *gin.Engine) {
+	// Define a route group for users
+	userRoutes := r.Group("/users")
+	{
+		// Routes related to general user management
+		userRoutes.GET("", handlers.GetUsers)          // Fetch users with filtering and pagination.
+		userRoutes.DELETE("/:id", handlers.DeleteUser) // Delete a user by ID.
+		userRoutes.PUT("/:id", handlers.UpdateUser)    // Update user data by ID.
+		userRoutes.POST("", handlers.AddUser)          // Add a new user.
 
-	r.GET("/users", handlers.GetUsers)                       // Fetch users with filtering and pagination.
-	r.GET("/users/:id/task-efforts", handlers.GetTaskEffort) // Retrieve task efforts for a user within a specified period, sorted by effort (descending).
-	r.POST("/users/:id/start-task", handlers.StartTask)      // Start tracking time for a task for a user.
-	r.POST("/users/:id/stop-task", handlers.StopTask)        // Stop tracking time for a task for a user.
-	r.DELETE("/users/:id", handlers.DeleteUser)              // Delete a user.
-	r.PUT("/users/:id", handlers.UpdateUser)                 // Update user data.
-	r.POST("/user", handlers.AddUser)                        // Add a new user.
-
+		// Routes related to tasks and efforts for a specific user
+		userRoutes.GET("/:id/tasks", handlers.GetUserTasks) // Get tasks for a specific user.
+		//userRoutes.GET("/efforts/:id", handlers.GetUserEffort)  // Get efforts for a specific user.
+		userRoutes.POST("/:userID/tasks/start", handlers.StartTask) // Start tracking time for a task for a user.
+		//userRoutes.PUT("/:userID/tasks/finish", handlers.FinishTask) // Finish tracking time for a task for a user.
+	}
 }
