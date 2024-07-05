@@ -10,7 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetUsers godoc
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 // @Summary Get users
 // @Description Get users with filtering and pagination
 // @Tags users
@@ -24,10 +27,8 @@ import (
 // @Param page query int false "Page number" default(1)
 // @Param pageSize query int false "Page size" default(10)
 // @Success 200 {array} models.User
-// @Failure 400 {object} map[string]interface{}
+// @Failure 400 {object} ErrorResponse
 // @Router /users [get]
-
-// GetUsers получает данные пользователя
 func GetUsers(c *gin.Context) {
 	var users []models.User
 	query := database.DB
@@ -58,7 +59,6 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// AddUser godoc
 // @Summary Add a new user
 // @Description Add a new user with the given passport number
 // @Tags users
@@ -66,8 +66,8 @@ func GetUsers(c *gin.Context) {
 // @Produce  json
 // @Param   user     body    models.User     true  "User"
 // @Success 200 {object} models.User
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Failure 400 {object} ErrorResponse "Invalid request body"
+// @Failure 500 {object} ErrorResponse "Failed to save user to database"
 // @Router /user [post]
 func AddUser(c *gin.Context) {
 	var newUser models.User
@@ -88,6 +88,16 @@ func AddUser(c *gin.Context) {
 	c.JSON(http.StatusOK, newUser)
 }
 
+// @Summary Delete a user
+// @Description Delete a user by ID
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Success 200 {object} ErrorResponse "User deleted successfully"
+// @Failure 404 {object} ErrorResponse "User not found"
+// @Failure 500 {object} ErrorResponse  "Failed to delete user"
+// @Router /user/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	// Extract user ID from URL parameter
 	userID := c.Param("id")
@@ -109,6 +119,18 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
+// @Summary Update a user
+// @Description Update a user by ID
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Param user body map[string]interface{} true "User data to update"
+// @Success 200 {object} models.User
+// @Failure 400 {object} ErrorResponse "User not found"
+// @Failure 404 {object} ErrorResponse "Invalid JSON format"
+// @Failure 500 {object} ErrorResponse "Failed to update user"
+// @Router /user/{id} [put]
 func UpdateUser(c *gin.Context) {
 	var user models.User
 
@@ -124,7 +146,7 @@ func UpdateUser(c *gin.Context) {
 	// Принять данные JSON из запроса и привязать их к структуре User
 	var newUserData map[string]interface{}
 	if err := c.ShouldBindJSON(&newUserData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
 		return
 	}
 
