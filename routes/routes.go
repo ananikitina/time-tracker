@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"time-tracker/handlers"
+	"github.com/ananikitina/time-tracker/handlers"
 
 	"github.com/gin-gonic/gin"
 )

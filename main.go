@@ -2,10 +2,11 @@ package main
 
 import (
 	"log"
-	"time-tracker/database"
-	"time-tracker/routes"
 
-	_ "time-tracker/docs"
+	"github.com/ananikitina/time-tracker/database"
+	"github.com/ananikitina/time-tracker/routes"
+
+	_ "github.com/ananikitina/time-tracker/docs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

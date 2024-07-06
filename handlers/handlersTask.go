@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"sort"
 	"time"
-	"time-tracker/database"
-	"time-tracker/models"
+
+	"github.com/ananikitina/time-tracker/database"
+	"github.com/ananikitina/time-tracker/models"
 
 	"github.com/gin-gonic/gin"
 )

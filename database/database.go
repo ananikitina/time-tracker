@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"time-tracker/models"
+	"github.com/ananikitina/time-tracker/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"

@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"time-tracker/database"
-	"time-tracker/models"
-	"time-tracker/routes"
+	"github.com/ananikitina/time-tracker/database"
+	"github.com/ananikitina/time-tracker/models"
+	"github.com/ananikitina/time-tracker/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

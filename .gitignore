@@ -1,0 +1,18 @@
+.github/.DS_Store
+.vscode/launch.json
+.DS_Store
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.time-tracker
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
+.env

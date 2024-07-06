@@ -1,6 +1,6 @@
-module time-tracker
+module github.com/ananikitina/time-tracker
 
-go 1.22.1
+go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.10.0
