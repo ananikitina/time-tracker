@@ -21,12 +21,13 @@ func Connect() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Construct the PostgreSQL DSN
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
 		os.Getenv("DB_HOST"), os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), os.Getenv("DB_TIMEZONE"))
+		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"), os.Getenv("DB_TIMEZONE"))
 
-	// Open a connection to the PostgreSQL database using GORM
+	// Open a connection to the PostgreSQL database
+	log.Printf("Connecting to PostgreSQL database at %s", os.Getenv("DB_HOST"))
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -45,8 +46,11 @@ func Connect() {
 }
 
 func Migrate() {
+	log.Println("Starting database migration")
+
 	err := DB.AutoMigrate(&models.User{}, &models.Task{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+	log.Println("Database migration completed")
 }

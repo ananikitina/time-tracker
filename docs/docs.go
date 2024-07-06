@@ -432,7 +432,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid pageSize parameter",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No users found with specified filters",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }

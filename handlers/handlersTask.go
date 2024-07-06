@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"sort"
 	"time"
@@ -10,9 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SortTasks сортирует задачи пользователя по убыванию продолжительности.
 // @Summary Sort user tasks
-// @Description Sort user tasks by duration in descending order
+// @Description SortTasks sorts the user's tasks in descending order over a period of time.
 // @Tags tasks
 // @Accept  json
 // @Produce  json
@@ -24,26 +24,32 @@ import (
 // @Failure 500 {object} ErrorResponse "Failed to retrieve tasks"
 // @Router /user/{userID}/tasks/sort [get]
 func SortTasks(c *gin.Context) {
+	log.Println("Handling SortTasks request")
+
 	var user models.User
 	userID := c.Param("userID")
 	startTime := c.Query("start_time")
 	endTime := c.Query("end_time")
 
-	// Поиск пользователя по ID
+	// Searching for a user by ID
+	log.Printf("Finding user with ID: %s", userID)
 	if err := database.DB.First(&user, userID).Error; err != nil {
+		log.Printf("User not found: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Извлечение задач пользователя за указанный период времени
+	// Fetching user's tasks for a specified time period
+	log.Printf("Fetching tasks for user %s between %s and %s", userID, startTime, endTime)
 	var tasks []models.Task
 	if err := database.DB.Where("user_id = ? AND start_time >= ? AND end_time <= ?", user.ID, startTime, endTime).
 		Find(&tasks).Error; err != nil {
+		log.Printf("Failed to retrieve tasks: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve tasks"})
 		return
 	}
 
-	// Функция для расчета продолжительности задачи
+	// Calculating the duration of the task
 	calculateDuration := func(task models.Task) time.Duration {
 		if task.EndTime != nil {
 			return task.EndTime.Sub(task.StartTime)
@@ -51,7 +57,7 @@ func SortTasks(c *gin.Context) {
 		return time.Duration(0)
 	}
 
-	// Сортировка задач по убыванию продолжительности
+	// Sorting tasks in descending order
 	sortByDurationDesc := func(i, j int) bool {
 		return calculateDuration(tasks[i]) > calculateDuration(tasks[j])
 	}
@@ -60,7 +66,6 @@ func SortTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
-// StartTask начинает новую задачу для пользователя.
 // @Summary Start a new task
 // @Description Start a new task for the user
 // @Tags tasks
@@ -71,30 +76,38 @@ func SortTasks(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse "User not found"
 // @Router /user/{userID}/tasks/start [post]
 func StartTask(c *gin.Context) {
+	log.Println("Handling StartTask request")
+
 	var user models.User
 	userID := c.Param("userID")
 
-	// Поиск пользователя по ID
+	// Searching for a user by ID
+	log.Printf("Finding user with ID: %s", userID)
 	if err := database.DB.First(&user, userID).Error; err != nil {
+		log.Printf("User not found: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Создание новой задачи
+	// Creation of a new task
 	task := models.Task{
 		UserID:    user.ID,
 		TaskName:  "Новая задача",
 		StartTime: time.Now(),
-		EndTime:   nil, // Можно оставить nil или установить значение по умолчанию
+		EndTime:   nil,
 	}
 
-	// Сохранение задачи в базе данных
-	database.DB.Create(&task)
+	// Saving a task in a database
+	log.Printf("Creating task for user %s: %+v", userID, task)
+	if err := database.DB.Create(&task).Error; err != nil {
+		log.Printf("Failed to create task: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{"task": task})
 }
 
-// FinishTask завершает активную задачу пользователя.
 // @Summary Finish active task
 // @Description Finish the active task for the user
 // @Tags tasks
@@ -107,28 +120,36 @@ func StartTask(c *gin.Context) {
 // @Failure 500 {object} ErrorResponse "Failed to finish task"
 // @Router /user/{userID}/tasks/finish [put]
 func FinishTask(c *gin.Context) {
+	log.Println("Handling FinishTask request")
+
 	var user models.User
 	userID := c.Param("userID")
 
-	// Поиск пользователя по ID
+	// Searching for a user by ID
+	log.Printf("Finding user with ID: %s", userID)
 	if err := database.DB.First(&user, userID).Error; err != nil {
+		log.Printf("User not found: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Find the active task for the user
+	// Finding the active task for the user
+	log.Printf("Finding active task for user %s", userID)
 	var task models.Task
 	if err := database.DB.Where("user_id = ? AND end_time IS NULL", userID).First(&task).Error; err != nil {
+		log.Printf("No active task found for user %s: %v", userID, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "No active task found for the user"})
 		return
 	}
 
-	// Set the end time to now
+	// Seting the end time to now
 	now := time.Now()
 	task.EndTime = &now
 
-	// Save the updated task to the database
+	// Saving the updated task to the database
+	log.Printf("Finishing task for user %s: %+v", userID, task)
 	if err := database.DB.Save(&task).Error; err != nil {
+		log.Printf("Failed to finish task: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finish task"})
 		return
 	}
@@ -136,7 +157,6 @@ func FinishTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"task": task})
 }
 
-// GetUserTasks получает все задачи пользователя.
 // @Summary Get user tasks
 // @Description Get all tasks for the user
 // @Tags tasks
@@ -148,19 +168,24 @@ func FinishTask(c *gin.Context) {
 // @Failure 500 {object} ErrorResponse "Failed to fetch tasks"
 // @Router /user/{id}/tasks [get]
 func GetUserTasks(c *gin.Context) {
+	log.Println("Handling GetUserTasks request")
+
 	// Extract user ID from URL parameter
 	userID := c.Param("id")
+	log.Printf("Fetching tasks for user with ID: %s", userID)
 
 	var tasks []models.Task
 
-	// Fetch all tasks for the user
+	// Fetching user's tasks
 	if err := database.DB.Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
+		log.Printf("Failed to fetch tasks: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tasks"})
 		return
 	}
 
 	// Check if tasks are found
 	if len(tasks) == 0 {
+		log.Printf("No tasks found for user with ID: %s", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "No tasks found for the user"})
 		return
 	}

@@ -29,27 +29,28 @@ import (
 // @BasePath /
 
 func main() {
-	// Загрузка переменных окружения из файла .env
+	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Подключение к базе данных
 	database.Connect()
 	database.Migrate()
 
-	// Инициализация Gin
+	// Gin initialization
 	r := gin.Default()
 
-	// Регистрация маршрутов
+	// Routes registration
 	routes.SetupRouter(r)
 
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Запуск сервера
-	if err := r.Run(":8080"); err != nil {
+	// Starting the server
+	port := ":8080"
+	log.Printf("Starting server on port %s", port)
+	if err := r.Run(port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 }
