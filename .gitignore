@@ -9,6 +9,7 @@
 .TemporaryItems
 .Trashes
 .time-tracker
+.logfile
 
 # Go workspace file
 go.work
