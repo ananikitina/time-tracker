@@ -14,7 +14,7 @@ func SetupRouter(r *gin.Engine) {
 		userRoutes.DELETE("/:id", handlers.DeleteUser)
 		userRoutes.PUT("/:id", handlers.UpdateUser)
 		userRoutes.POST("", handlers.AddUser)
-		userRoutes.GET("/:id", handlers.GetUserTasks)
+		userRoutes.GET("/:id/tasks", handlers.GetUserTasks)
 	}
 	taskRoutes := r.Group("/tasks")
 	{
